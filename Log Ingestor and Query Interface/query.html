@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Log Query Interface</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container mt-5">
+    <div class="row">
+      <div class="col">
+        <!-- Input for searching logs -->
+        <input 
+          class="form-control mb-3" 
+          type="text" 
+          placeholder="Search logs" 
+          id="searchInput"
+        />
+
+        <!-- DataGrid to display log data -->
+        <table class="table table-bordered table-hover">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Level</th>
+              <th>Message</th>
+              <th>Resource ID</th>
+              <th>Timestamp</th>
+              <!-- Add other headers for columns -->
+            </tr>
+          </thead>
+          <tbody id="dataGridBody">
+            <!-- Log data will be populated here -->
+          </tbody>
+        </table>
+
+        <!-- Display error if there's an issue fetching data -->
+        <div class="mt-3" id="errorDisplay"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Axios library for HTTP requests -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+  <script>
+    const fetchData = async () => {
+      const searchValue = document.getElementById('searchInput').value;
+      const errorDisplay = document.getElementById('errorDisplay');
+      const dataGridBody = document.getElementById('dataGridBody');
+      const loadingTemplate = '<tr><td colspan="5">Loading...</td></tr>';
+
+      try {
+        errorDisplay.innerHTML = ''; // Clear previous error messages
+        dataGridBody.innerHTML = loadingTemplate;
+
+        const response = await axios.get('http://localhost:3000/logs', { params: { search: searchValue } });
+        const rowData = response.data;
+
+        // Render the DataGrid with received data
+        renderDataGrid(rowData);
+      } catch (error) {
+        errorDisplay.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+        dataGridBody.innerHTML = ''; // Clear the DataGrid
+      }
+    };
+
+    const renderDataGrid = (rowData) => {
+      const dataGridBody = document.getElementById('dataGridBody');
+      dataGridBody.innerHTML = ''; // Clear previous data
+
+      // Iterate through rowData and populate the table rows
+      rowData.forEach(log => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${log.id}</td>
+          <td>${log.level}</td>
+          <td>${log.message}</td>
+          <td>${log.resourceId}</td>
+          <td>${log.timestamp}</td>
+          <!-- Add other cells for log data -->
+        `;
+        dataGridBody.appendChild(row);
+      });
+    };
+
+    // Attach event listener to trigger fetchData on search input change
+    document.getElementById('searchInput').addEventListener('input', fetchData);
+
+    // Initial fetch data call (on page load)
+    fetchData();
+  </script>
+</body>
+</html>
+
